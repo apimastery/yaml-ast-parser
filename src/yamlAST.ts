@@ -49,6 +49,7 @@ export interface YAMLScalar extends YAMLNode{
     value:string
     doubleQuoted?:boolean
     singleQuoted?:boolean
+    backtickQuoted?: boolean
     plainScalar?:boolean
     rawValue:string
 }
@@ -97,6 +98,7 @@ export function newScalar(v:string|boolean|number=""):YAMLScalar{
         kind:Kind.SCALAR,
         parent:null,
         doubleQuoted:false,
+        backtickQuoted: false,
         rawValue:""+v,
     };
     if(typeof v !== "string"){

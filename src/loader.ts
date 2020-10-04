@@ -663,6 +663,79 @@ function readPlainScalar(state:State, nodeIndent, withinFlowCollection) {
   return false;
 }
 
+const BACKTICK_CHAR = 0x60; /* ` */
+
+function raiseError(state: State, errMsg: string) {
+  throwError(state, errMsg);
+
+  const mark = new Mark(
+    state.filename,
+    state.input,
+    state.position,
+    state.line,
+    (state.position - state.lineStart)
+  );
+
+  throw new Error(errMsg + ' ' + mark.toString());
+}
+
+function readBacktickQuotedScalar(state: State, nodeIndent) {
+  var ch = state.input.charCodeAt(state.position);
+
+  if (BACKTICK_CHAR !== ch) {
+    return false;
+  }
+
+  var scalar = ast.newScalar();
+  scalar.backtickQuoted = true;
+  state.kind = 'scalar';
+  state.result = scalar;
+  scalar.startPosition = state.position;
+
+  state.position++;
+
+  ch = state.input.charCodeAt(state.position)
+  if (!is_EOL(ch)) {
+    const errMsg = 'expected end of line after start of backtick quoted string but got ' +
+      (ch != 0 ? String.fromCharCode(ch) + ' (' + ch + ')' : 'end of stream');
+    raiseError(state, errMsg);
+  }
+  readLineBreak(state);
+
+  var captureStart = state.position;
+  var captureEnd = captureStart;
+
+  while (0 !== (ch = state.input.charCodeAt(state.position))) {
+    //console.log('ch: <' + String.fromCharCode(ch) + '>');
+    if (BACKTICK_CHAR === ch) {
+      captureSegment(state, captureStart, state.position, true);
+      ch = state.input.charCodeAt(++state.position);
+
+      //console.log('next: <' + String.fromCharCode(ch) + '>');
+      scalar.endPosition = state.position;
+      if (BACKTICK_CHAR === ch) {
+        captureStart = captureEnd = state.position;
+        state.position++;
+      } else {
+        return true;
+      }
+    } else if (is_EOL(ch)) {
+      captureSegment(state, captureStart, captureEnd, true);
+      writeFoldedLines(state, scalar, skipSeparationSpace(state, false, nodeIndent));
+      captureStart = captureEnd = state.position;
+    } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
+      throwError(state, 'unexpected end of the document within a backtick quoted string');
+    } else {
+      state.position++;
+      captureEnd = state.position;
+      scalar.endPosition = state.position;
+    }
+  }
+
+  //throwError(state, 'unexpected end of the stream within a backtick quoted string');
+  raiseError(state, 'unexpected end of the stream within a backtick quoted string');
+}
+
 function readSingleQuotedScalar(state:State, nodeIndent) {
   var ch,
       captureStart, captureEnd;
@@ -1543,7 +1616,8 @@ function composeNode(state:State, parentIndent, nodeContext, allowToSeek, allowC
       } else {
         if ((allowBlockScalars && readBlockScalar(state, flowIndent)) ||
             readSingleQuotedScalar(state, flowIndent) ||
-            readDoubleQuotedScalar(state, flowIndent)) {
+            readDoubleQuotedScalar(state, flowIndent) ||
+            readBacktickQuotedScalar(state, flowIndent)) {
           hasContent = true;
 
         } else if (readAlias(state)) {

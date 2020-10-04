@@ -62,7 +62,7 @@ export function determineScalarType(node: YAMLScalar): ScalarType {
         return ScalarType.null;
     }
 
-    if (node.doubleQuoted || !node.plainScalar || node['singleQuoted']) {
+  if (node.doubleQuoted || !node.plainScalar || node['singleQuoted'] || node.backtickQuoted) {
         return ScalarType.string
     }
 
