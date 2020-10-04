@@ -89,6 +89,12 @@ function isNodesEqual(a, b) {
     if (a.kind === Kind.SCALAR) {
         return a.value === b.value;
     }
+    if (Kind.MAPPING === a.kind) {
+        const aAsMapping = a;
+        const bAsMapping = b;
+        const eq = isNodesEqual(aAsMapping.key, bAsMapping.key);
+        return eq;
+    }
     if (a.kind === Kind.SEQ) {
         const aSeq = a;
         const bSeq = b;

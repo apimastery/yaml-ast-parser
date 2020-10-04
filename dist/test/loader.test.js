@@ -58,6 +58,16 @@ inner2:
     });
 });
 suite('Backtick quoted multi-line string', () => {
+    test('should report duplicate keys after parsing', () => {
+        const input = 'kind: a\ncwd: b\nkind: c';
+        const yamlNodes = [];
+        YAML.loadAll(input, (d) => yamlNodes.push(d), {});
+        assert.lengthOf(yamlNodes, 1, `Expected a single YAML root but got ${yamlNodes.length}`);
+        const doc = yamlNodes[0];
+        assert.lengthOf(doc.errors, 2, `Expected 2 errors but got ${doc.errors.length}`);
+        assert.include(doc.errors[0].message, 'duplicate key');
+        assert.include(doc.errors[1].message, 'duplicate key');
+    });
     test('test_EndsOnLastLine_NothingAfterIt', () => {
         const input = "" +
             "response:\n" +

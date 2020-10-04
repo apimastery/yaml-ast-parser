@@ -152,6 +152,14 @@ export function isNodesEqual(a: YAMLNode, b: YAMLNode): boolean {
         return (<YAMLScalar>a).value === (<YAMLScalar>b).value;
     }
 
+    if (Kind.MAPPING === a.kind) {
+        const aAsMapping = <YAMLMapping>a;
+        const bAsMapping = <YAMLMapping>b;
+        // Recursively determine if the keys are equal
+        const eq = isNodesEqual(aAsMapping.key, bAsMapping.key);
+        return eq;
+    }
+
     if(a.kind === Kind.SEQ) {
         const aSeq = <YAMLSequence> a;
         const bSeq = <YAMLSequence> b;
