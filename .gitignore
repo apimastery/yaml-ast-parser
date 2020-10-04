@@ -8,5 +8,5 @@
 .project
 .settings
 
-/dist/
+
 target/npmlist.json
