@@ -80,6 +80,23 @@ inner2:
     });
 });
 
+suite('Generic tests', () => {
+    test('should report duplicate keys after parsing', () => {
+        const input = 'kind: a\ncwd: b\nkind: c';
+
+        const yamlNodes: YAML.YAMLNode[] = [];
+        YAML.loadAll(input, (d) => yamlNodes.push(d), {});
+
+        assert.lengthOf(yamlNodes, 1, `Expected 1 YAML root but got ${yamlNodes.length}`);
+
+        const doc = yamlNodes[0];
+        assert.lengthOf(doc.errors, 2, `Expected 2 errors but got ${doc.errors.length}`);
+
+        assert.include(doc.errors[0].message, 'duplicate key');
+        assert.include(doc.errors[1].message, 'duplicate key');
+    });
+});
+
 class DuplicateStructureBuilder extends AbstractVisitor {
     visitScalar(node: YAML.YAMLScalar) {
         return YAML.newScalar(node.value)
