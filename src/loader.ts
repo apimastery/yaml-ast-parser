@@ -665,19 +665,19 @@ function readPlainScalar(state:State, nodeIndent, withinFlowCollection) {
 
 const BACKTICK_CHAR = 0x60; /* ` */
 
-function raiseError(state: State, errMsg: string) {
-  throwError(state, errMsg);
+// function raiseError(state: State, errMsg: string) {
+//   throwError(state, errMsg);
 
-  const mark = new Mark(
-    state.filename,
-    state.input,
-    state.position,
-    state.line,
-    (state.position - state.lineStart)
-  );
+//   const mark = new Mark(
+//     state.filename,
+//     state.input,
+//     state.position,
+//     state.line,
+//     (state.position - state.lineStart)
+//   );
 
-  throw new Error(errMsg + ' ' + mark.toString());
-}
+//   throw new Error(errMsg + ' ' + mark.toString());
+// }
 
 function readBacktickQuotedScalar(state: State, nodeIndent) {
   var ch = state.input.charCodeAt(state.position);
@@ -698,9 +698,13 @@ function readBacktickQuotedScalar(state: State, nodeIndent) {
   if (!is_EOL(ch)) {
     const errMsg = 'expected end of line after start of backtick quoted string but got ' +
       (ch != 0 ? String.fromCharCode(ch) + ' (' + ch + ')' : 'end of stream');
-    raiseError(state, errMsg);
+    // raiseError(state, errMsg);
+    throwError(state, errMsg);
+    // return false;
   }
-  readLineBreak(state);
+  else {
+    readLineBreak(state);
+  }
 
   var captureStart = state.position;
   var captureEnd = captureStart;
@@ -732,8 +736,8 @@ function readBacktickQuotedScalar(state: State, nodeIndent) {
     }
   }
 
-  //throwError(state, 'unexpected end of the stream within a backtick quoted string');
-  raiseError(state, 'unexpected end of the stream within a backtick quoted string');
+  throwError(state, 'unexpected end of the stream within a backtick quoted string');
+  //raiseError(state, 'unexpected end of the stream within a backtick quoted string');
 }
 
 function readSingleQuotedScalar(state:State, nodeIndent) {

@@ -94,27 +94,21 @@ suite('Backtick quoted multi-line string', () => {
             "  from: stub\n" +
             "  body: `{\n  \"status\": \"OK\"\n}` \n" +
             "";
-        try {
-            YAML.safeLoad(input);
-            assert.fail('Expected an error to be thrown but got none');
-        }
-        catch (e) {
-            assert.include(e.message, 'expected end of line after start of backtick quoted string but got { (123) at line 3, column 11');
-        }
+        const doc = YAML.safeLoad(input);
+        assert.lengthOf(doc.errors, 1, `Expected 1 error but got ${doc.errors.length}`);
+        const err = doc.errors[0];
+        assert.include(err.message, 'expected end of line after start of backtick quoted string but got { (123) at line 3, column 10');
     });
     test('test_EndsOnSameLineWhereItStarts', () => {
         const input = "" +
             "response:\n" +
             "  from: stub\n" +
-            "  body: `{\n  \"status\": \"OK\"\n}`\n" +
+            "  body: `{ \"status\": \"OK\" }`\n" +
             "";
-        try {
-            YAML.safeLoad(input);
-            assert.fail('Expected an error to be thrown but got none');
-        }
-        catch (e) {
-            assert.include(e.message, 'expected end of line after start of backtick quoted string but got { (123) at line 3, column 11');
-        }
+        const doc = YAML.safeLoad(input);
+        assert.lengthOf(doc.errors, 1, `Expected 1 errors but got ${doc.errors.length}`);
+        const err = doc.errors[0];
+        assert.include(err.message, 'expected end of line after start of backtick quoted string but got { (123) at line 3, column 10');
     });
     test('test_NothingAfterItAndMissingEndQuotes', () => {
         const input = "" +
@@ -125,13 +119,10 @@ suite('Backtick quoted multi-line string', () => {
             "  \"status\": \"OK\"\n" +
             "}" +
             "";
-        try {
-            YAML.safeLoad(input);
-            assert.fail('Expected an error to be thrown but got none');
-        }
-        catch (e) {
-            assert.include(e.message, 'unexpected end of the stream within a backtick quoted string at line 7, column 1');
-        }
+        const doc = YAML.safeLoad(input);
+        assert.lengthOf(doc.errors, 1, `Expected 1 errors but got ${doc.errors.length}`);
+        const err = doc.errors[0];
+        assert.include(err.message, 'unexpected end of the stream within a backtick quoted string at line 7, column 1');
     });
 });
 class DuplicateStructureBuilder extends visitor_1.AbstractVisitor {
