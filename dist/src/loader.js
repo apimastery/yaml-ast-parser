@@ -482,6 +482,11 @@ function readPlainScalar(state, nodeIndent, withinFlowCollection) {
     return false;
 }
 const BACKTICK_CHAR = 0x60;
+function skipToEOF(state) {
+    while (0 !== state.input.charCodeAt(state.position)) {
+        state.position++;
+    }
+}
 function readBacktickQuotedScalar(state, nodeIndent) {
     var ch = state.input.charCodeAt(state.position);
     if (BACKTICK_CHAR !== ch) {
@@ -498,10 +503,10 @@ function readBacktickQuotedScalar(state, nodeIndent) {
         const errMsg = 'expected end of line after start of backtick quoted string but got ' +
             (ch != 0 ? String.fromCharCode(ch) + ' (' + ch + ')' : 'end of stream');
         throwError(state, errMsg);
+        skipToEOF(state);
+        return false;
     }
-    else {
-        readLineBreak(state);
-    }
+    readLineBreak(state);
     var captureStart = state.position;
     var captureEnd = captureStart;
     while (0 !== (ch = state.input.charCodeAt(state.position))) {
