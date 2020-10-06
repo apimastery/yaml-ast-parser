@@ -124,6 +124,17 @@ suite('Backtick quoted multi-line string', () => {
         const err = doc.errors[0];
         assert.include(err.message, 'unexpected end of the stream within a backtick quoted string at line 7, column 1');
     });
+    test('test_EndOfStreamAfterOpeningQuotes', () => {
+        const input = "" +
+            "response:\n" +
+            "  from: stub\n" +
+            "  body: `" +
+            "";
+        const doc = YAML.safeLoad(input);
+        assert.lengthOf(doc.errors, 1, `Expected 1 errors but got ${doc.errors.length}`);
+        const err = doc.errors[0];
+        assert.include(err.message, 'unexpected end of the stream within a backtick quoted string at line 4, column 1');
+    });
 });
 class DuplicateStructureBuilder extends visitor_1.AbstractVisitor {
     visitScalar(node) {

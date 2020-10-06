@@ -667,10 +667,11 @@ function readPlainScalar(state: State, nodeIndent, withinFlowCollection) {
 const BACKTICK_CHAR = 0x60; /* ` */
 
 function skipToEOF(state: State) {
+  // For some reason this doesn't work:
+  // state.position = state.input.length;
   while (0 !== state.input.charCodeAt(state.position)) {
     state.position++;
   }
-  // state.position = state.input.length;
 }
 
 function readBacktickQuotedScalar(state: State, nodeIndent) {
@@ -696,9 +697,7 @@ function readBacktickQuotedScalar(state: State, nodeIndent) {
     skipToEOF(state);
     return false;
   }
-  //else {
   readLineBreak(state);
-  //}
 
   var captureStart = state.position;
   var captureEnd = captureStart;

@@ -183,8 +183,6 @@ suite('Backtick quoted multi-line string', () => {
     const input = "" +
       "response:\n" + 
       "  from: stub\n" +
-      // The text starts right after the triple quotes instead of a new line
-      // after that
       "  body: `\n" + 
       "{\n" + 
       "  \"status\": \"OK\"\n" + 
@@ -200,7 +198,28 @@ suite('Backtick quoted multi-line string', () => {
     );
   });
 
-  // test_EndOfStreamAfterOpeningQuotes
+  test('test_EndOfStreamAfterOpeningQuotes', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" +
+      "  from: stub\n" +
+      // EOF right after the backtip quote
+      "  body: `" +
+      "";
+
+    const doc = YAML.safeLoad(input)
+    assert.lengthOf(doc.errors, 1, `Expected 1 errors but got ${doc.errors.length}`)
+    const err = doc.errors[0];
+    // The error message is different than the one in the Java implementation 
+    // ("expected end of line but got end of stream") because this parser
+    // always adds a new line character 0x10 at the end of the input
+    assert.include(
+      err.message,
+      'unexpected end of the stream within a backtick quoted string at line 4, column 1'
+    );
+  });
+
+
   // test_EndOfStreamAfterOpeningQuotesFollowedByNewLine
   // test_ContainsEscapedBacktickCharacter
 
