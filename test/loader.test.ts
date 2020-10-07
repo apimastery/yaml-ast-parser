@@ -132,8 +132,8 @@ suite('Backtick quoted multi-line string', () => {
               YAML.newScalar("body"),
               YAML.newScalar("{ \"status\": \"OK\" } "),
             ),
-          ])
-        )
+          ]),
+        ),
       ]);
     
     assert.deepEqual(actual_structure, expected_structure)
@@ -142,7 +142,57 @@ suite('Backtick quoted multi-line string', () => {
       `Found error(s): ${doc.errors.toString()} when expecting none.`)
   });
 
-  // test_EndsOnLastLine_FollowedBy
+  // TODO
+  test.skip('test_EndsOnLastLine_FollowedBy', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" + 
+      "  from: stub\n" + 
+      "  body: `\n" + 
+      "{\n" + 
+      "  \"status\": \"OK\"\n" + 
+      "} `\n" +
+      // ...and followed by a field at the same indentation level
+      "  status: 200\n" + 
+      "rank: 1" + 
+      "";
+
+    const doc = YAML.safeLoad(input)
+    const actual_structure = structure(doc);
+
+    const expected_structure =
+      YAML.newMap([
+        YAML.newMapping(
+          YAML.newScalar("response"),
+          YAML.newMap([
+            YAML.newMapping(
+              YAML.newScalar("from"),
+              YAML.newScalar("stub"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("body"),
+              // TODO this fails the test. Fix the code to make this pass. See
+              // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
+              // make sure it passes
+              YAML.newScalar("{\n \"status\": \"OK\"\n} "),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("status"),
+              YAML.newScalar("200"),
+            ),
+          ])
+        ),
+        YAML.newMapping(
+          YAML.newScalar("rank"),
+          YAML.newScalar("1"),
+        ),
+      ]);
+
+    assert.deepEqual(actual_structure, expected_structure)
+
+    assert.lengthOf(doc.errors, 0,
+      `Found error(s): ${doc.errors.toString()} when expecting none.`)
+  });
 
   test('test_FirstCharIsRightAfterTheQuotes', () => {
     // Using the same quoting as in the equivalent test in Java
@@ -219,18 +269,28 @@ suite('Backtick quoted multi-line string', () => {
     );
   });
 
+  test('test_EndOfStreamAfterOpeningQuotesFollowedByNewLine', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" + 
+      "  from: stub\n" +
+      // EOF right after the new line that follows the opening triple quotes
+      "  body: `\n" + 
+      "";
 
-  // test_EndOfStreamAfterOpeningQuotesFollowedByNewLine
+    const doc = YAML.safeLoad(input)
+
+    assert.lengthOf(doc.errors, 1, `Expected 1 errors but got ${doc.errors.length}`)
+
+    const err = doc.errors[0];
+    assert.include(
+      err.message,
+      'unexpected end of the stream within a backtick quoted string at line 4, column 1'
+    );
+  });
+
   // test_ContainsEscapedBacktickCharacter
 
-  //   test('Document end position should be equal to input length', function () {
-  //     const input = `
-  // outer:
-  // inner:
-  //     `;
-  //     const doc1 = YAML.load(input);
-  //     assert.deepEqual(doc1.endPosition, input.length);
-  //   });
 });
 
 class DuplicateStructureBuilder extends AbstractVisitor {

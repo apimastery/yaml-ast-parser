@@ -687,6 +687,7 @@ function readBacktickQuotedScalar(state: State, nodeIndent) {
   state.result = scalar;
   scalar.startPosition = state.position;
 
+  // Position after the backtick quote character
   state.position++;
 
   ch = state.input.charCodeAt(state.position)
