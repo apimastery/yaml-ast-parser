@@ -701,31 +701,47 @@ function readBacktickQuotedScalar(state: State, nodeIndent) {
   readLineBreak(state);
 
   var captureStart = state.position;
-  var captureEnd = captureStart;
+  // var captureEnd = captureStart;
 
   while (0 !== (ch = state.input.charCodeAt(state.position))) {
     //console.log('ch: <' + String.fromCharCode(ch) + '>');
     if (BACKTICK_CHAR === ch) {
-      captureSegment(state, captureStart, state.position, true);
+      // ORG: captureSegment(state, captureStart, state.position, true);
+      // Code taken from 'captureSegment' and modified
+      const scalar: ast.YAMLScalar = <ast.YAMLScalar>state.result;
+      if (scalar.startPosition == -1) {
+        scalar.startPosition = captureStart;
+      }
+      if (captureStart <= state.position) {
+        const _result = state.input.slice(captureStart, state.position);
+        scalar.value += _result;
+        scalar.endPosition = state.position;
+      }
+      
       ch = state.input.charCodeAt(++state.position);
 
       //console.log('next: <' + String.fromCharCode(ch) + '>');
       scalar.endPosition = state.position;
       if (BACKTICK_CHAR === ch) {
-        captureStart = captureEnd = state.position;
+        // ORG:captureStart = captureEnd = state.position;
+        captureStart = state.position;
         state.position++;
       } else {
         return true;
       }
     } else if (is_EOL(ch)) {
-      captureSegment(state, captureStart, captureEnd, true);
-      writeFoldedLines(state, scalar, skipSeparationSpace(state, false, nodeIndent));
-      captureStart = captureEnd = state.position;
+    // @BEG apimastery: commented out
+    //   captureSegment(state, captureStart, captureEnd, true);
+    //   writeFoldedLines(state, scalar, skipSeparationSpace(state, false, nodeIndent));
+    //   captureStart = captureEnd = state.position;
+    // @END apimastery: commented out
+      // apimastery: account for the EOL and go past it
+      readLineBreak(state);
     } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
       throwError(state, 'unexpected end of the document within a backtick quoted string');
     } else {
       state.position++;
-      captureEnd = state.position;
+      // ORG: captureEnd = state.position;
       scalar.endPosition = state.position;
     }
   }

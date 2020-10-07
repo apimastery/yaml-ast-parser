@@ -82,13 +82,13 @@ suite('Backtick quoted multi-line string', () => {
         const expected_structure = YAML.newMap([
             YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
                 YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
-                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{ \"status\": \"OK\" } ")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"OK\"\n} ")),
             ])),
         ]);
         assert.deepEqual(actual_structure, expected_structure);
         assert.lengthOf(doc.errors, 0, `Found error(s): ${doc.errors.toString()} when expecting none.`);
     });
-    test.skip('test_EndsOnLastLine_FollowedBy', () => {
+    test('test_EndsOnLastLine_FollowedBy', () => {
         const input = "" +
             "response:\n" +
             "  from: stub\n" +
@@ -104,7 +104,7 @@ suite('Backtick quoted multi-line string', () => {
         const expected_structure = YAML.newMap([
             YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
                 YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
-                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n \"status\": \"OK\"\n} ")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"OK\"\n} ")),
                 YAML.newMapping(YAML.newScalar("status"), YAML.newScalar("200")),
             ])),
             YAML.newMapping(YAML.newScalar("rank"), YAML.newScalar("1")),

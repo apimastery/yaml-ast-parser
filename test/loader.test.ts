@@ -130,7 +130,7 @@ suite('Backtick quoted multi-line string', () => {
             ),
             YAML.newMapping(
               YAML.newScalar("body"),
-              YAML.newScalar("{ \"status\": \"OK\" } "),
+              YAML.newScalar("{\n  \"status\": \"OK\"\n} "),
             ),
           ]),
         ),
@@ -142,8 +142,7 @@ suite('Backtick quoted multi-line string', () => {
       `Found error(s): ${doc.errors.toString()} when expecting none.`)
   });
 
-  // TODO
-  test.skip('test_EndsOnLastLine_FollowedBy', () => {
+  test('test_EndsOnLastLine_FollowedBy', () => {
     // Using the same quoting as in the equivalent test in Java
     const input = "" +
       "response:\n" + 
@@ -174,7 +173,7 @@ suite('Backtick quoted multi-line string', () => {
               // TODO this fails the test. Fix the code to make this pass. See
               // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
               // make sure it passes
-              YAML.newScalar("{\n \"status\": \"OK\"\n} "),
+              YAML.newScalar("{\n  \"status\": \"OK\"\n} "),
             ),
             YAML.newMapping(
               YAML.newScalar("status"),

@@ -508,14 +508,21 @@ function readBacktickQuotedScalar(state, nodeIndent) {
     }
     readLineBreak(state);
     var captureStart = state.position;
-    var captureEnd = captureStart;
     while (0 !== (ch = state.input.charCodeAt(state.position))) {
         if (BACKTICK_CHAR === ch) {
-            captureSegment(state, captureStart, state.position, true);
+            const scalar = state.result;
+            if (scalar.startPosition == -1) {
+                scalar.startPosition = captureStart;
+            }
+            if (captureStart <= state.position) {
+                const _result = state.input.slice(captureStart, state.position);
+                scalar.value += _result;
+                scalar.endPosition = state.position;
+            }
             ch = state.input.charCodeAt(++state.position);
             scalar.endPosition = state.position;
             if (BACKTICK_CHAR === ch) {
-                captureStart = captureEnd = state.position;
+                captureStart = state.position;
                 state.position++;
             }
             else {
@@ -523,16 +530,13 @@ function readBacktickQuotedScalar(state, nodeIndent) {
             }
         }
         else if (is_EOL(ch)) {
-            captureSegment(state, captureStart, captureEnd, true);
-            writeFoldedLines(state, scalar, skipSeparationSpace(state, false, nodeIndent));
-            captureStart = captureEnd = state.position;
+            readLineBreak(state);
         }
         else if (state.position === state.lineStart && testDocumentSeparator(state)) {
             throwError(state, 'unexpected end of the document within a backtick quoted string');
         }
         else {
             state.position++;
-            captureEnd = state.position;
             scalar.endPosition = state.position;
         }
     }
