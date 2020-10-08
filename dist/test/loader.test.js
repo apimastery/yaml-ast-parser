@@ -68,6 +68,118 @@ suite('Backtick quoted multi-line string', () => {
         assert.include(doc.errors[0].message, 'duplicate key');
         assert.include(doc.errors[1].message, 'duplicate key');
     });
+    test('test_EndsWithNewLine_FollowedByMoreSameLevelFields', () => {
+        const input = "" +
+            "response:\n" +
+            "  from: stub\n" +
+            "  body: `\n" +
+            "{\n" +
+            "  \"status\": \"OK\"\n" + "}\n" +
+            "`\n" +
+            "  status: 200\n" +
+            "rank: 1" +
+            "";
+        const doc = YAML.safeLoad(input);
+        const actual_structure = structure(doc);
+        const expected_structure = YAML.newMap([
+            YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
+                YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"OK\"\n}\n")),
+                YAML.newMapping(YAML.newScalar("status"), YAML.newScalar("200")),
+            ])),
+            YAML.newMapping(YAML.newScalar("rank"), YAML.newScalar("1")),
+        ]);
+        assert.deepEqual(actual_structure, expected_structure);
+        assert.lengthOf(doc.errors, 0, `Found error(s): ${doc.errors.toString()} when expecting none.`);
+    });
+    test('test_EndsWithNewLine_FollowedByFieldAtOuterLevel', () => {
+        const input = "" +
+            "response:\n" +
+            "  from: stub\n" +
+            "  body: `\n" + "{\n" +
+            "  \"status\": \"OK\"\n" +
+            "}\n" +
+            "`\n" +
+            "rank: 1" + "";
+        const doc = YAML.safeLoad(input);
+        const actual_structure = structure(doc);
+        const expected_structure = YAML.newMap([
+            YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
+                YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"OK\"\n}\n")),
+            ])),
+            YAML.newMapping(YAML.newScalar("rank"), YAML.newScalar("1")),
+        ]);
+        assert.deepEqual(actual_structure, expected_structure);
+        assert.lengthOf(doc.errors, 0, `Found error(s): ${doc.errors.toString()} when expecting none.`);
+    });
+    test('test_EndsWithNewLine_NothingAfterIt', () => {
+        const input = "" +
+            "response:\n" +
+            "  from: stub\n" +
+            "  body: `\n" +
+            "{\n" +
+            "  \"status\": \"OK\"\n" +
+            "}\n" +
+            "`" +
+            "";
+        const doc = YAML.safeLoad(input);
+        const actual_structure = structure(doc);
+        const expected_structure = YAML.newMap([
+            YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
+                YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"OK\"\n}\n")),
+            ])),
+        ]);
+        assert.deepEqual(actual_structure, expected_structure);
+        assert.lengthOf(doc.errors, 0, `Found error(s): ${doc.errors.toString()} when expecting none.`);
+    });
+    test('test_EndsOnLastLine_FollowedByFieldAtSameLevel', () => {
+        const input = "" +
+            "response:\n" +
+            "  from: stub\n" +
+            "  body: `\n" +
+            "{\n" +
+            "  \"status\": \"OK\"\n" +
+            "} `\n" +
+            "  status: 200\n" +
+            "rank: 1" +
+            "";
+        const doc = YAML.safeLoad(input);
+        const actual_structure = structure(doc);
+        const expected_structure = YAML.newMap([
+            YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
+                YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"OK\"\n} ")),
+                YAML.newMapping(YAML.newScalar("status"), YAML.newScalar("200")),
+            ])),
+            YAML.newMapping(YAML.newScalar("rank"), YAML.newScalar("1")),
+        ]);
+        assert.deepEqual(actual_structure, expected_structure);
+        assert.lengthOf(doc.errors, 0, `Found error(s): ${doc.errors.toString()} when expecting none.`);
+    });
+    test('test_EndsOnLastLine_FollowedByFieldAtOuterLevel', () => {
+        const input = "" +
+            "response:\n" +
+            "  from: stub\n" +
+            "  body: `\n" +
+            "{\n" +
+            "  \"status\": \"OK\"\n" +
+            "} `\n" +
+            "rank: 1" +
+            "";
+        const doc = YAML.safeLoad(input);
+        const actual_structure = structure(doc);
+        const expected_structure = YAML.newMap([
+            YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
+                YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"OK\"\n} ")),
+            ])),
+            YAML.newMapping(YAML.newScalar("rank"), YAML.newScalar("1")),
+        ]);
+        assert.deepEqual(actual_structure, expected_structure);
+        assert.lengthOf(doc.errors, 0, `Found error(s): ${doc.errors.toString()} when expecting none.`);
+    });
     test('test_EndsOnLastLine_NothingAfterIt', () => {
         const input = "" +
             "response:\n" +

@@ -98,11 +98,243 @@ suite('Backtick quoted multi-line string', () => {
     assert.include(doc.errors[1].message, 'duplicate key');
   });
 
-  // test_EndsWithNewLine_FollowedByMoreSameLevelFields
-  // test_EndsWithNewLine_FollowedByFieldAtOuterLevel
-  // test_EndsWithNewLine_NothingAfterIt
-  // test_EndsOnLastLine_FollowedByFieldAtSameLevel
-  // test_EndsOnLastLine_FollowedByFieldAtOuterLevel
+  test('test_EndsWithNewLine_FollowedByMoreSameLevelFields', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" +
+      "  from: stub\n" +
+      "  body: `\n" +
+      "{\n" +
+      "  \"status\": \"OK\"\n" + "}\n" +
+      // ends on new line
+      "`\n" +
+      // ...and followed by a field at the same indentation level
+      "  status: 200\n" + 
+      "rank: 1" + 
+      "";
+
+    const doc = YAML.safeLoad(input)
+    const actual_structure = structure(doc);
+
+    const expected_structure =
+      YAML.newMap([
+        YAML.newMapping(
+          YAML.newScalar("response"),
+          YAML.newMap([
+            YAML.newMapping(
+              YAML.newScalar("from"),
+              YAML.newScalar("stub"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("body"),
+              // TODO this fails the test. Fix the code to make this pass. See
+              // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
+              // make sure it passes
+              YAML.newScalar("{\n  \"status\": \"OK\"\n}\n"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("status"),
+              YAML.newScalar("200"),
+            ),
+          ])
+        ),
+        YAML.newMapping(
+          YAML.newScalar("rank"),
+          YAML.newScalar("1"),
+        ),
+      ]);
+
+    assert.deepEqual(actual_structure, expected_structure)
+
+    assert.lengthOf(doc.errors, 0,
+      `Found error(s): ${doc.errors.toString()} when expecting none.`)
+  });
+
+  test('test_EndsWithNewLine_FollowedByFieldAtOuterLevel', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" + 
+      "  from: stub\n" + 
+      "  body: `\n" + "{\n" + 
+      "  \"status\": \"OK\"\n" + 
+      "}\n" +
+        // ends on new line
+      "`\n" +
+      // ...and followed by a field at the parent's (outer) indentation level
+      "rank: 1" + "";
+
+    const doc = YAML.safeLoad(input)
+    const actual_structure = structure(doc);
+
+    const expected_structure =
+      YAML.newMap([
+        YAML.newMapping(
+          YAML.newScalar("response"),
+          YAML.newMap([
+            YAML.newMapping(
+              YAML.newScalar("from"),
+              YAML.newScalar("stub"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("body"),
+              // TODO this fails the test. Fix the code to make this pass. See
+              // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
+              // make sure it passes
+              YAML.newScalar("{\n  \"status\": \"OK\"\n}\n"),
+            ),
+          ])
+        ),
+        YAML.newMapping(
+          YAML.newScalar("rank"),
+          YAML.newScalar("1"),
+        ),
+      ]);
+
+    assert.deepEqual(actual_structure, expected_structure)
+
+    assert.lengthOf(doc.errors, 0,
+      `Found error(s): ${doc.errors.toString()} when expecting none.`)
+  });
+
+  test('test_EndsWithNewLine_NothingAfterIt', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" + 
+      "  from: stub\n" + 
+      "  body: `\n" + 
+      "{\n" + 
+      "  \"status\": \"OK\"\n" + 
+      "}\n" +
+      // ends on new line
+      "`" +
+      // ...and nothing after it
+      "";
+
+    const doc = YAML.safeLoad(input)
+    const actual_structure = structure(doc);
+
+    const expected_structure =
+      YAML.newMap([
+        YAML.newMapping(
+          YAML.newScalar("response"),
+          YAML.newMap([
+            YAML.newMapping(
+              YAML.newScalar("from"),
+              YAML.newScalar("stub"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("body"),
+              // TODO this fails the test. Fix the code to make this pass. See
+              // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
+              // make sure it passes
+              YAML.newScalar("{\n  \"status\": \"OK\"\n}\n"),
+            ),
+          ])
+        ),
+      ]);
+
+    assert.deepEqual(actual_structure, expected_structure)
+
+    assert.lengthOf(doc.errors, 0,
+      `Found error(s): ${doc.errors.toString()} when expecting none.`)
+  });
+
+  test('test_EndsOnLastLine_FollowedByFieldAtSameLevel', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" + 
+      "  from: stub\n" + 
+      "  body: `\n" + 
+      "{\n" + 
+      "  \"status\": \"OK\"\n" + 
+      "} `\n" +
+      // ...and followed by a field at the same indentation level
+      "  status: 200\n" + 
+      "rank: 1" + 
+      "";
+
+    const doc = YAML.safeLoad(input)
+    const actual_structure = structure(doc);
+
+    const expected_structure =
+      YAML.newMap([
+        YAML.newMapping(
+          YAML.newScalar("response"),
+          YAML.newMap([
+            YAML.newMapping(
+              YAML.newScalar("from"),
+              YAML.newScalar("stub"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("body"),
+              // TODO this fails the test. Fix the code to make this pass. See
+              // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
+              // make sure it passes
+              YAML.newScalar("{\n  \"status\": \"OK\"\n} "),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("status"),
+              YAML.newScalar("200"),
+            ),
+          ])
+        ),
+        YAML.newMapping(
+          YAML.newScalar("rank"),
+          YAML.newScalar("1"),
+        ),
+      ]);
+
+    assert.deepEqual(actual_structure, expected_structure)
+
+    assert.lengthOf(doc.errors, 0,
+      `Found error(s): ${doc.errors.toString()} when expecting none.`)
+  });
+  
+  test('test_EndsOnLastLine_FollowedByFieldAtOuterLevel', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" + 
+      "  from: stub\n" + 
+      "  body: `\n" + 
+      "{\n" + 
+      "  \"status\": \"OK\"\n" + 
+      "} `\n" +
+      // ...and followed by a field at the parent's (outer) indentation level
+      "rank: 1" + 
+      "";
+
+    const doc = YAML.safeLoad(input)
+    const actual_structure = structure(doc);
+
+    const expected_structure =
+      YAML.newMap([
+        YAML.newMapping(
+          YAML.newScalar("response"),
+          YAML.newMap([
+            YAML.newMapping(
+              YAML.newScalar("from"),
+              YAML.newScalar("stub"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("body"),
+              // TODO this fails the test. Fix the code to make this pass. See
+              // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
+              // make sure it passes
+              YAML.newScalar("{\n  \"status\": \"OK\"\n} "),
+            ),
+          ])
+        ),
+        YAML.newMapping(
+          YAML.newScalar("rank"),
+          YAML.newScalar("1"),
+        ),
+      ]);
+
+    assert.deepEqual(actual_structure, expected_structure)
+
+    assert.lengthOf(doc.errors, 0,
+      `Found error(s): ${doc.errors.toString()} when expecting none.`)
+  });
 
   test('test_EndsOnLastLine_NothingAfterIt', () => {
     // Using the same quoting as in the equivalent test in Java
@@ -288,7 +520,7 @@ suite('Backtick quoted multi-line string', () => {
     );
   });
 
-  // test_ContainsEscapedBacktickCharacter
+  // TODO test_ContainsEscapedBacktickCharacter
 
 });
 
