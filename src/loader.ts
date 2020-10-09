@@ -665,6 +665,7 @@ function readPlainScalar(state: State, nodeIndent, withinFlowCollection) {
 }
 
 const BACKTICK_CHAR = 0x60; /* ` */
+const BACKSLASH_CHAR = 0x5C; /* \ */
 
 function skipToEOF(state: State) {
   // For some reason this doesn't work:
@@ -704,26 +705,38 @@ function readBacktickQuotedScalar(state: State, nodeIndent) {
   // var captureEnd = captureStart;
 
   while (0 !== (ch = state.input.charCodeAt(state.position))) {
-    //console.log('ch: <' + String.fromCharCode(ch) + '>');
     if (BACKTICK_CHAR === ch) {
-      // ORG: captureSegment(state, captureStart, state.position, true);
-      // Code taken from 'captureSegment' and modified
+      // Code taken largerly from 'captureSegment' and modified
       const scalar: ast.YAMLScalar = <ast.YAMLScalar>state.result;
       if (scalar.startPosition == -1) {
         scalar.startPosition = captureStart;
       }
       if (captureStart <= state.position) {
-        const _result = state.input.slice(captureStart, state.position);
-        scalar.value += _result;
-        scalar.endPosition = state.position;
-      }
-      
-      ch = state.input.charCodeAt(++state.position);
+        var isEscapedBacktick = false;
+        // state.position is > 0
+        const prev_char = state.input.charCodeAt(state.position - 1);
+        if (BACKSLASH_CHAR === prev_char) {
+          // Process escaped backtick character
+          isEscapedBacktick = true;
 
-      //console.log('next: <' + String.fromCharCode(ch) + '>');
+          // Up to and excluding the backsklash
+          const beforeEscapedChar = state.input.slice(captureStart, state.position - 1);
+          scalar.value += beforeEscapedChar;
+
+          // The backtick character itself
+          const afterEscapedChar = state.input.slice(state.position, state.position + 1);
+          scalar.value += afterEscapedChar;
+        }
+        else {
+          const _result = state.input.slice(captureStart, state.position);
+          scalar.value += _result;
+        }
+      }
+
+      ch = state.input.charCodeAt(++state.position);
       scalar.endPosition = state.position;
-      if (BACKTICK_CHAR === ch) {
-        // ORG:captureStart = captureEnd = state.position;
+
+      if (isEscapedBacktick) {
         captureStart = state.position;
         state.position++;
       } else {

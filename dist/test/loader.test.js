@@ -282,6 +282,27 @@ suite('Backtick quoted multi-line string', () => {
         const err = doc.errors[0];
         assert.include(err.message, 'unexpected end of the stream within a backtick quoted string at line 4, column 1');
     });
+    test('test_ContainsEscapedBacktickCharacter', () => {
+        const input = "" +
+            "response:\n" +
+            "  from: stub\n" +
+            "  body: `\n" +
+            "{\n" +
+            "  \"status\": \"\\`OK\\`\"\n" +
+            "} `\n" +
+            "" +
+            "";
+        const doc = YAML.safeLoad(input);
+        const actual_structure = structure(doc);
+        const expected_structure = YAML.newMap([
+            YAML.newMapping(YAML.newScalar("response"), YAML.newMap([
+                YAML.newMapping(YAML.newScalar("from"), YAML.newScalar("stub")),
+                YAML.newMapping(YAML.newScalar("body"), YAML.newScalar("{\n  \"status\": \"`OK`\"\n} ")),
+            ])),
+        ]);
+        assert.deepEqual(actual_structure, expected_structure);
+        assert.lengthOf(doc.errors, 0, `Found error(s): ${doc.errors.toString()} when expecting none.`);
+    });
 });
 class DuplicateStructureBuilder extends visitor_1.AbstractVisitor {
     visitScalar(node) {

@@ -520,7 +520,46 @@ suite('Backtick quoted multi-line string', () => {
     );
   });
 
-  // TODO test_ContainsEscapedBacktickCharacter
+  test('test_ContainsEscapedBacktickCharacter', () => {
+    // Using the same quoting as in the equivalent test in Java
+    const input = "" +
+      "response:\n" +
+      "  from: stub\n" +
+      "  body: `\n" +
+      "{\n" +
+      "  \"status\": \"\\`OK\\`\"\n" +
+      "} `\n" +
+      "" +
+      "";
+
+    const doc = YAML.safeLoad(input)
+    const actual_structure = structure(doc);
+
+    const expected_structure =
+      YAML.newMap([
+        YAML.newMapping(
+          YAML.newScalar("response"),
+          YAML.newMap([
+            YAML.newMapping(
+              YAML.newScalar("from"),
+              YAML.newScalar("stub"),
+            ),
+            YAML.newMapping(
+              YAML.newScalar("body"),
+              // TODO this fails the test. Fix the code to make this pass. See
+              // also the test above test_EndsOnLastLine_NothingAfterIt - change it, 
+              // make sure it passes
+              YAML.newScalar("{\n  \"status\": \"`OK`\"\n} "),
+            ),
+          ])
+        ),
+      ]);
+
+    assert.deepEqual(actual_structure, expected_structure)
+
+    assert.lengthOf(doc.errors, 0,
+      `Found error(s): ${doc.errors.toString()} when expecting none.`)
+  });
 
 });
 

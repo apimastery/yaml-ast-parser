@@ -482,6 +482,7 @@ function readPlainScalar(state, nodeIndent, withinFlowCollection) {
     return false;
 }
 const BACKTICK_CHAR = 0x60;
+const BACKSLASH_CHAR = 0x5C;
 function skipToEOF(state) {
     while (0 !== state.input.charCodeAt(state.position)) {
         state.position++;
@@ -515,13 +516,23 @@ function readBacktickQuotedScalar(state, nodeIndent) {
                 scalar.startPosition = captureStart;
             }
             if (captureStart <= state.position) {
-                const _result = state.input.slice(captureStart, state.position);
-                scalar.value += _result;
-                scalar.endPosition = state.position;
+                var isEscapedBacktick = false;
+                const prev_char = state.input.charCodeAt(state.position - 1);
+                if (BACKSLASH_CHAR === prev_char) {
+                    isEscapedBacktick = true;
+                    const beforeEscapedChar = state.input.slice(captureStart, state.position - 1);
+                    scalar.value += beforeEscapedChar;
+                    const afterEscapedChar = state.input.slice(state.position, state.position + 1);
+                    scalar.value += afterEscapedChar;
+                }
+                else {
+                    const _result = state.input.slice(captureStart, state.position);
+                    scalar.value += _result;
+                }
             }
             ch = state.input.charCodeAt(++state.position);
             scalar.endPosition = state.position;
-            if (BACKTICK_CHAR === ch) {
+            if (isEscapedBacktick) {
                 captureStart = state.position;
                 state.position++;
             }
