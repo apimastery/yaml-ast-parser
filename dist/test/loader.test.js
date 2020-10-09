@@ -62,9 +62,7 @@ class DuplicateStructureBuilder extends visitor_1.AbstractVisitor {
         return YAML.newScalar(node.value);
     }
     visitMapping(node) {
-        const key = this.visitScalar(node.key);
-        const value = this.accept(node.value);
-        return YAML.newMapping(key, value);
+        return YAML.newMapping(this.visitScalar(node.key), this.accept(node.value));
     }
     visitSequence(node) {
         const seq = YAML.newSeq();
